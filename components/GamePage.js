@@ -9,30 +9,30 @@ import Styles from '../styles/page-styles';
 import { Audio } from 'expo-av';
 import FlipCard from 'react-native-flip-card';
 
-const generateCardSet = (difficulty) => {
-    const baseSet = ['🥩', '❣️', '🐕', '🎾', '🥎', '🌍', '🐘', '🐪', '🐃', '🦁', '🦁', '📱'];
-    let setLength;
-
-    switch (difficulty) {
-        case 'easy': setLength = 6; break;
-        case 'medium': setLength = 8; break;
-        case 'hard': setLength = 12; break;
-        default: setLength = 6;
-    }
-
-    const gameSet = baseSet.slice(0, setLength).flatMap(i => [i, i]);
-    gameSet.sort(() => Math.random() - 0.5);
-
-    return gameSet.map((face, index) => ({
-        id: index,
-        face,
-        matched: false,
-        flipped: false,
-        clickable:true
-    }));
-};
-
 function GamePage({ navigation, route }) {
+
+    const generateCardSet = (difficulty) => {
+        const baseSet = ['🥩', '❣️', '🐕', '🎾', '🥎', '🌍', '🐘', '🐪', '🐃', '🦁', '🦁', '📱'];
+        let setLength;
+
+        switch (difficulty) {
+            case 'easy': setLength = 6; break;
+            case 'medium': setLength = 8; break;
+            case 'hard': setLength = 12; break;
+            default: setLength = 6;
+        }
+
+        const gameSet = baseSet.slice(0, setLength).flatMap(i => [i, i]);
+        gameSet.sort(() => Math.random() - 0.5);
+
+        return gameSet.map((face, index) => ({
+            id: index,
+            face,
+            matched: false,
+            flipped: false,
+            clickable: true
+        }));
+    };
 
     const SIX_IN_MS = 600; // VICTORY VIBRATION
     const [colorC, setColorC] = useState('black')
