@@ -238,9 +238,7 @@ function GamePage({navigation, route }) {
 
                     {/* Back */}
                     <View style={Styles.imageContainer}>
-                            <Pressable onPress={() => handlePress(index)}>
                                 <Text style={Styles.cardText}>{card.face}</Text>
-                            </Pressable>
                     </View>
                 </FlipCard>
                 ))}
@@ -255,7 +253,7 @@ function GamePage({navigation, route }) {
                 <Pressable style={Styles.button} onPress={restartGame}><Text style={Styles.buttonText}>Reset</Text></Pressable>
                 <Pressable
                     style={[Styles.button, { backgroundColor: 'green' }]}
-                    onPress={() => navigation.navigate('Home', {score})}
+                    onPress={() => navigation.navigate('Home')}
                 ><Text style={Styles.buttonText}>Home</Text></Pressable>
                 <Button title="Save State" onPress={saveState} />
                 <Button title="Load State" onPress={loadState} />
