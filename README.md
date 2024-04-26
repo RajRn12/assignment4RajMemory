@@ -1,5 +1,6 @@
 !!Note:Just Play Slow so the Game can recognize which images to compare!!
-Dependencies:
+
+#Dependencies:
 -@react-navigation/native and @react-navigation/native-stack are used for navigation between screens
 -@react-native-picker/picker used for dropdown menu which include difficulty options
 -expo-sqlite used for creating and running database (store scores)
