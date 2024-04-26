@@ -16,7 +16,7 @@ LogBox.ignoreLogs([
 
 
 // Open and connect to database
-const db = openDatabase('link1.db');
+const db = openDatabase('memory.db');
 
 function HomeScreen({ navigation, route }) {
     const [difficulty, setDifficulty] = useState('easy');
