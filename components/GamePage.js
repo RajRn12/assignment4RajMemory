@@ -2,7 +2,7 @@
  * Credit   -   Grehard, Stephen, Someone
  */
 import * as React from 'react';
-import { View, Alert, Text, Pressable, Button, Vibration, Dimensions } from 'react-native';
+import { View, Alert, Text, Pressable, Button, Vibration } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as FileSystem from 'expo-file-system';
 import Styles from '../styles/page-styles';
@@ -46,6 +46,7 @@ function GamePage({ navigation, route }) {
         setCards(generateCardSet(difficulty));
     }, [difficulty]);
 
+    // Alert a victory
     useEffect(() => {
         if (score * 2 === cards.length && cards.length > 0) {
             Alert.alert("Congratulations!", "You've won the game!", [{ text: "OK" }]);
@@ -54,14 +55,18 @@ function GamePage({ navigation, route }) {
         }
     }, [score, cards.length]);
 
+    // Add score to database after score has increased
+    const [match, setMatch] = useState(0)
     useEffect(() => {
         if (score == 0) { setColorC('black') }
-    }, [])
+        if (score != 0) { addData(score) }
+    }, [score, match])
 
+    // Compare selected images and do actions acordingly
     const handlePress = (index) => {
         Vibration.vibrate(5);
 
-        if (selectedCards.length === 2 || cards[index].flipped) return;
+        if (selectedCards.length == 2 || cards[index].flipped) return;
 
         const newCards = [...cards];
         newCards[index].flipped = true;
@@ -75,12 +80,12 @@ function GamePage({ navigation, route }) {
                 console.log("Matched")
                 playSound(1)
                 setColorC('green')
-                setScore(score + 1);
+                setScore(score => score + 1);
+                setMatch(match => match + 1)
                 setCards(prevCards => prevCards.map(card =>
-                    card.face === firstCard.face ? { ...card, matched: true, flipped: true, clickable: false } : card
+                    card.face == firstCard.face ? { ...card, matched: true, flipped: true, clickable: false } : card
                 ));
                 setSelectedCards([]);
-                addData(score)
             } else {
                 console.log("No match")
                 setTimeout(() => {
@@ -165,9 +170,7 @@ function GamePage({ navigation, route }) {
     // For database
     const db = route.params.db;
 
-    const addData = (score) => {
-        let score_ = score
-        if (score_ == 0) { score_ = 1 }
+    const addData = (score_) => {
         if (score_ > 0 ) {
             db.transaction(
                 (tx) => {
@@ -183,6 +186,7 @@ function GamePage({ navigation, route }) {
         }
     }
 
+    // Reset location of cards and score
     const restartGame = () => {
         setCards(generateCardSet(difficulty));
         setSelectedCards([]);
@@ -231,7 +235,6 @@ function GamePage({ navigation, route }) {
         loadState();
         return () => { saveState }
     }, [])
-
 
     return (
         <View style={Styles.container}>

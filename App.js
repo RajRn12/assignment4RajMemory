@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { View, Alert, Image, StyleSheet, Text, LogBox, Pressable, TextInput, ScrollView } from 'react-native';
+import { View,Text, LogBox, Pressable} from 'react-native';
 import { useEffect, useState } from 'react';
 import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,7 +14,7 @@ LogBox.ignoreLogs([
     'Non-serializable values were found in the navigation state',
 ]);
 
-const db = openDatabase('record1.db');
+const db = openDatabase('record2.db');
 
 function HomeScreen({ navigation }) {
     const [difficulty, setDifficulty] = useState('easy');
