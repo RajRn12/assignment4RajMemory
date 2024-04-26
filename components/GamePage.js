@@ -1,6 +1,7 @@
 ﻿import * as React from 'react';
-import { View, Alert, Text, Pressable, TextInput, Image, TouchableOpacity, Vibration } from 'react-native';
+import { View, Alert, Text, Pressable, Button, Vibration } from 'react-native';
 import { useEffect, useState } from 'react';
+import * as FileSystem from 'expo-file-system';
 import Styles from '../styles/page-styles';
 import { Audio } from 'expo-av';
 import FlipCard from 'react-native-flip-card';
@@ -170,6 +171,50 @@ function GamePage({navigation, route }) {
         setScore(0);
     };
 
+    const dataFileName = 'datafile.json';
+
+    const loadState = async () => {
+        try {
+            // get the string
+            const currentStateString = await FileSystem.readAsStringAsync(
+                FileSystem.documentDirectory + dataFileName
+            );
+            
+            currentState = JSON.parse(currentStateString)
+            // extract all the saved states
+            setScore(currentState.score);
+            setCards(currentState.card)
+        } catch (e) {
+            console.log(FileSystem.documentDirectory + dataFileName + e);
+            // probably there wasn't a saved state, so make one for next time?
+            saveState();
+        }
+    }
+
+    /**
+     * This function will save the data as a json string 
+     */
+    const saveState = async () => {
+        // build an object of everything we are saving
+        const currentState = { "score": score, "card": cards };
+        try {
+            // write the stringified object to the save file
+            await FileSystem.writeAsStringAsync(
+                FileSystem.documentDirectory + dataFileName,
+                JSON.stringify(currentState)
+            );
+        } catch (e) {
+            console.log(FileSystem.documentDirectory + dataFileName + e);
+        }
+    }
+
+    // load on app load, save on app unload
+    useEffect(() => {
+        loadState();
+        return () => { saveState }
+    }, [])
+
+
     return (
         <View style={Styles.container}>
             <View style={Styles.grid}>
@@ -212,6 +257,8 @@ function GamePage({navigation, route }) {
                     style={[Styles.button, { backgroundColor: 'green' }]}
                     onPress={() => navigation.navigate('Home', {score})}
                 ><Text style={Styles.buttonText}>Home</Text></Pressable>
+                <Button title="Save State" onPress={saveState} />
+                <Button title="Load State" onPress={loadState} />
             </View>
         </View>
     );
