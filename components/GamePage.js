@@ -256,11 +256,9 @@ function GamePage({ navigation, route }) {
                     </View>
 
                     {/* Back */}
-                    <View style={Styles.imageContainer}>
-                            
+                    <View style={Styles.imageContainer}>                  
                                 <Text style={Styles.cardText}>{card.face}</Text>
-                          
-                    </View>
+                </View>
                 </FlipCard>
                 ))}
             </View>

@@ -14,8 +14,6 @@ LogBox.ignoreLogs([
     'Non-serializable values were found in the navigation state',
 ]);
 
-
-// Open and connect to database
 const db = openDatabase('record1.db');
 
 function HomeScreen({ navigation }) {
