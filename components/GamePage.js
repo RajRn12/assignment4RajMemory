@@ -1,5 +1,8 @@
-﻿import * as React from 'react';
-import { View, Alert, Text, Pressable, Button, Vibration } from 'react-native';
+﻿/**
+ * Credit   -   Grehard, Stephen, Someone
+ */
+import * as React from 'react';
+import { View, Alert, Text, Pressable, Button, Vibration, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as FileSystem from 'expo-file-system';
 import Styles from '../styles/page-styles';
@@ -29,19 +32,85 @@ const generateCardSet = (difficulty) => {
     }));
 };
 
-function GamePage({navigation, route }) {
+function GamePage({ navigation, route }) {
 
     const SIX_IN_MS = 600; // VICTORY VIBRATION
+    const [colorC, setColorC] = useState('black')
+
+    const { difficulty } = route.params;
+    const [cards, setCards] = useState([]);
+    const [selectedCards, setSelectedCards] = useState([]);
+    const [score, setScore] = useState(0);
+
+    useEffect(() => {
+        setCards(generateCardSet(difficulty));
+    }, [difficulty]);
+
+    useEffect(() => {
+        if (score * 2 === cards.length && cards.length > 0) {
+            Alert.alert("Congratulations!", "You've won the game!", [{ text: "OK" }]);
+            playSound(0);
+            Vibration.vibrate(SIX_IN_MS)
+        }
+    }, [score, cards.length]);
+
+    useEffect(() => {
+        if (score == 0) { setColorC('black') }
+    }, [])
+
+    const handlePress = (index) => {
+        Vibration.vibrate(5);
+
+        if (selectedCards.length === 2 || cards[index].flipped) return;
+
+        const newCards = [...cards];
+        newCards[index].flipped = true;
+        setCards(newCards);
+
+        let newSelectedCards = [...selectedCards, index];
+        if (newSelectedCards.length == 2) {
+            const firstCard = cards[newSelectedCards[0]];
+            const secondCard = cards[newSelectedCards[1]];
+            if (firstCard.face == secondCard.face) {
+                console.log("Matched")
+                playSound(1)
+                setColorC('green')
+                setScore(score + 1);
+                setCards(prevCards => prevCards.map(card =>
+                    card.face === firstCard.face ? { ...card, matched: true, flipped: true, clickable: false } : card
+                ));
+                setSelectedCards([]);
+                addData(score)
+            } else {
+                console.log("No match")
+                setTimeout(() => {
+                    playSound(2)
+                    setCards(prevCards => prevCards.map(card =>
+                        newSelectedCards.includes(card.id) ? { ...card, flipped: false, clickable: true } : card
+                    ));
+                    setSelectedCards([]);
+                    newSelectedCards = null;
+                }, 500);
+
+            }
+        } else {
+            setSelectedCards(newSelectedCards);
+        }
+    };
 
     // Audio
     const [soundList, setSoundList] = useState([
-        { sound: null }
+        { sound: null }, { sound: null }, { sound: null }
     ])
     // Sound
     const win = require('../assets/sfx/win.mp3');
+    const matched = require('../assets/sfx/matched.mp3')
+    const incompatible = require('../assets/sfx/incompatible.mp3')
 
     const loadSoundList = () => {
         loadSound(0, win);
+        loadSound(1, matched)
+        loadSound(2, incompatible)
     }
 
     const loadSound = async (id, uri) => {
@@ -97,13 +166,15 @@ function GamePage({navigation, route }) {
     const db = route.params.db;
 
     const addData = (score) => {
-        if (score != null) {
+        let score_ = score
+        if (score_ == 0) { score_ = 1 }
+        if (score_ > 0 ) {
             db.transaction(
                 (tx) => {
                     tx.executeSql(
-                        "insert into record () values (?, ?)",
-                        [score],
-                        () => console.log("added score:", score),
+                        "insert into record values (?)",
+                        [score_],
+                        () => console.log("added score:", score_),
                         (_, error) => console.log(error)
                     )
                 },
@@ -111,59 +182,6 @@ function GamePage({navigation, route }) {
             )
         }
     }
-
-    const { difficulty } = route.params;
-    const [cards, setCards] = useState([]);
-    const [selectedCards, setSelectedCards] = useState([]);
-    const [score, setScore] = useState(0);
-
-    useEffect(() => {
-        setCards(generateCardSet(difficulty));
-    }, [difficulty]);
-
-    useEffect(() => {
-        if (score * 2 === cards.length && cards.length > 0) {
-            Alert.alert("Congratulations!", "You've won the game!", [{ text: "OK" }]);
-            playSound(0);
-            Vibration.vibrate(SIX_IN_MS)
-        }
-    }, [score, cards.length]);
-
-    const handlePress = (index) => {
-        Vibration.vibrate(5); 
-
-        if (selectedCards.length === 2 || cards[index].flipped) return;
-
-        const newCards = [...cards];
-        newCards[index].flipped = true;
-        setCards(newCards);
-
-        const newSelectedCards = [...selectedCards, index];
-        if (newSelectedCards.length === 2) {
-            const firstCard = cards[newSelectedCards[0]];
-            const secondCard = cards[newSelectedCards[1]];
-            if (firstCard.face === secondCard.face) {
-                console.log("match")
-                setScore(score + 1);
-                addData(score)
-                setCards(prevCards => prevCards.map(card =>
-                    card.face === firstCard.face ? { ...card, matched: true, flipped: true, clickable:false } : card
-                ));
-                setSelectedCards([]);
-            } else {
-                    console.log("No match")
-                     setTimeout(() => {
-                    setCards(prevCards => prevCards.map(card =>
-                        newSelectedCards.includes(card.id) ? { ...card, flipped: false, clickable:true} : card
-                    ));
-                    setSelectedCards([]);
-                }, 1000);
-               
-            }
-        } else {
-            setSelectedCards(newSelectedCards);
-        }
-    };
 
     const restartGame = () => {
         setCards(generateCardSet(difficulty));
@@ -228,6 +246,7 @@ function GamePage({navigation, route }) {
                     flipVertical={false}
                     flip={card.flipped}
                     clickable={card.clickable}
+                    
                 >
                     {/* Front */}
                         <View style={Styles.imageContainer}>
@@ -238,9 +257,9 @@ function GamePage({navigation, route }) {
 
                     {/* Back */}
                     <View style={Styles.imageContainer}>
-                            <Pressable onPress={() => handlePress(index)}>
+                            
                                 <Text style={Styles.cardText}>{card.face}</Text>
-                            </Pressable>
+                          
                     </View>
                 </FlipCard>
                 ))}
@@ -250,12 +269,12 @@ function GamePage({navigation, route }) {
                     <Text style={Styles.winMessage}>You Won! 🎉</Text>
                 </>
             ) : null}
-            <Text>Scored: {score} pts</Text>
+            <Text style={{color:colorC}} >Scored: {score} pts</Text>
             <View style={Styles.buttonView}>
                 <Pressable style={Styles.button} onPress={restartGame}><Text style={Styles.buttonText}>Reset</Text></Pressable>
                 <Pressable
                     style={[Styles.button, { backgroundColor: 'green' }]}
-                    onPress={() => navigation.navigate('Home', {score})}
+                    onPress={() => navigation.navigate('Home')}
                 ><Text style={Styles.buttonText}>Home</Text></Pressable>
                 <Button title="Save State" onPress={saveState} />
                 <Button title="Load State" onPress={loadState} />

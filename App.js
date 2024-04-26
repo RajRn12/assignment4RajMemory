@@ -16,16 +16,16 @@ LogBox.ignoreLogs([
 
 
 // Open and connect to database
-const db = openDatabase('link1.db');
+const db = openDatabase('record1.db');
 
-function HomeScreen({ navigation, route }) {
+function HomeScreen({ navigation }) {
     const [difficulty, setDifficulty] = useState('easy');
 
     // Create datatable
     useEffect(() => {
         db.transaction((tx) => {
             tx.executeSql(
-                "create table if not exists record (id integer primary key AUTOINCREMENT NOT NULL, score int);",
+                "create table if not exists record (score integer);",
                 () => console.log("Table is successfully created")
             ),
                 (_, error) => console.log(error),
@@ -62,7 +62,7 @@ const Stack = createNativeStackNavigator();
 function App() {
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName="Link Saver">
+            <Stack.Navigator initialRouteName="Home">
                 <Stack.Screen
                     name="Home"
                     component={HomeScreen}
